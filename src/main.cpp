@@ -5,6 +5,7 @@
 #include <GL/freeglut.h>
 #include <cmath>
 #include <stdio.h>
+#include <iostream>
 #include "utils.h"
 #include "Teapot.h"
 #include "Material.h"
@@ -67,7 +68,7 @@ void computeFPS(){
 	int timeInterval = currentTime - previousTime;
 
 	if (timeInterval > 1000) {
-		fps = frameCount / (timeInterval / 1000.0f);
+		fps = frameCount * 1000.0f / timeInterval;
 		previousTime = currentTime;
 		frameCount = 0;
 	}
@@ -98,6 +99,7 @@ void displayFPS(){
 
 void display(void){ 
     float lpos[4] = {0., 10., 10., 1.0};  //light's position
+    float lcol[4] = {1.0, 1.0, 1.0, 1.0};  //light's colour
     float shadowMat[16] = {
         lpos[1], 0, 0, 0,
         -lpos[0], 0, -lpos[2], 0,
@@ -115,15 +117,17 @@ void display(void){
     // gluLookAt(5, 5, 5, 0, 0, 0, 0, 1, 0);
 
     glLightfv(GL_LIGHT0,GL_POSITION, lpos);   //Set light position
+    glLightfv(GL_LIGHT0,GL_DIFFUSE, lcol);    //Set light colour
 
     displayFPS();
 
-	glDisable(GL_LIGHTING);			//Disable lighting when drawing floor.
-    // drawFloor();
+    glDisable(GL_LIGHTING);			//Disable lighting when drawing floor.
+        drawFloor();
+    glEnable(GL_LIGHTING);			//Enable lighting when drawing the teapot
 
     // glCullFace(GL_BACK);
 
-	glEnable(GL_LIGHTING);	
+	// glEnable(GL_LIGHTING);	
     		//Enable lighting when drawing the teapot
     glPushMatrix();
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
@@ -138,6 +142,7 @@ void display(void){
 
     // glCullFace(GL_FRONT);
 
+    glDisable(GL_LIGHTING);
     glPushMatrix();
         float shadowColor[4] = {0.2, 0.2, 0.22, 1};
         glMultMatrixf(shadowMat);
@@ -150,6 +155,7 @@ void display(void){
         glTranslatef(0, 0, 5);
         teapot3.drawShadows(shadowColor);
     glPopMatrix();
+    glEnable(GL_LIGHTING);
 
 	glutSwapBuffers(); 
 }
@@ -159,7 +165,7 @@ void initialize(void){
 
     glEnable(GL_LIGHTING);		//Enable OpenGL states
     glEnable(GL_LIGHT0);
- 	glEnable(GL_COLOR_MATERIAL);
+ 	// glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     // glEnable(GL_CULL_FACE);
@@ -225,7 +231,7 @@ int main(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
     glutInitWindowSize(1920, 1080);
-    glutCreateWindow("Teapot");
+    glutCreateWindow("Assignment 1");
     glutDisplayFunc(display);
     glutIdleFunc(display);
     glutKeyboardFunc(keyHandler);
