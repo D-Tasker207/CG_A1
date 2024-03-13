@@ -12,7 +12,7 @@ class Drawable {
         void addTexture(char* imgPath);
         void drawShadows(float shadowColor[4]);
         void applyMaterial();
-        void getTexture(unsigned int unit);
+        Texture* getTexture(unsigned int unit);
         Material getMaterial() { return *material; };
     protected:
         virtual void drawObject() = 0;        

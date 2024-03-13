@@ -23,6 +23,13 @@ void Drawable::addTexture(char* imgPath) {
     textures.push_back(new Texture(imgPath));
 }
 
+Texture* Drawable::getTexture(unsigned int unit) {
+    if (unit < textures.size()) {
+        return textures[unit];
+    }
+    return nullptr;
+}
+
 /*
 * Draw the object with a shadow color
 * MUST DISABLE LIGHTING BEFORE FUNCTION CALL

@@ -8,6 +8,7 @@
 #include <iostream>
 #include "utils.h"
 #include "Teapot.h"
+#include "Floor.h"
 #include "Material.h"
 
 // camera variables
@@ -22,40 +23,32 @@ float teapotAngle = 0.0;  //Rotation angle of teapot
 int teapotRotationSpeed = 5;
 
 Teapot teapot1(new Material(
+    new float[4]{0.2, 0.0, 0.0, 1.0},
     new float[4]{0.8, 0.0, 0.0, 1.0},
-    new float[4]{0.0, 0.0, 0.8, 1.0},
     new float[4]{0.0, 0.0, 0.0, 1.0},
     0.0
 ));
 
 Teapot teapot2(new Material(
-    new float[4]{0.8, 0.0, 0.0, 1.0},
+    new float[4]{0.0, 0.0, 0.2, 1.0},
     new float[4]{0.0, 0.0, 0.8, 1.0},
     new float[4]{0.3, 0.3, 0.3, 1.0},
     10.0
 ));
 
 Teapot teapot3(new Material(
-    new float[4]{0.8, 0.0, 0.0, 1.0},
-    new float[4]{0.0, 0.0, 0.8, 1.0},
+    new float[4]{0.0, 0.2, 0.0, 1.0},
+    new float[4]{0.0, 0.8, 0.0, 1.0},
     new float[4]{1.0, 1.0, 1.0, 1.0},
     128.0
 ));
 
-//Draw two tris as floor plane
-void drawFloor(){
-    glColor3f(0., 0.5,  0.);			//Floor colour
-
-	for(int i = -50; i <= 50; i ++)
-	{
-		glBegin(GL_LINES);			//A set of grid lines on the xz-plane
-			glVertex3f(-50, 0, i);
-			glVertex3f(50, 0, i);
-			glVertex3f(i, 0, -50);
-			glVertex3f(i, 0, 50);
-		glEnd();
-	}
-}
+Floor floorPlane(new Material(
+    new float[4]{0.5, 0.5, 0.5, 1.0},
+    new float[4]{0.5, 0.5, 0.5, 1.0},
+    new float[4]{1.0, 1.0, 1.0, 1.0},
+    10.0
+), new float[3]{0.0, 0.5, 0.0});
 
 // FPS Counter Variables
 int frameCount = 0;
@@ -121,14 +114,8 @@ void display(void){
 
     displayFPS();
 
-    glDisable(GL_LIGHTING);			//Disable lighting when drawing floor.
-        drawFloor();
-    glEnable(GL_LIGHTING);			//Enable lighting when drawing the teapot
+    floorPlane.draw();
 
-    // glCullFace(GL_BACK);
-
-	// glEnable(GL_LIGHTING);	
-    		//Enable lighting when drawing the teapot
     glPushMatrix();
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
         // glRotatef(60, 1,0,0);
@@ -165,12 +152,10 @@ void initialize(void){
 
     glEnable(GL_LIGHTING);		//Enable OpenGL states
     glEnable(GL_LIGHT0);
- 	// glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
-    // glEnable(GL_CULL_FACE);
-    // glFrontFace(GL_CW);
     glEnable(GL_MULTISAMPLE);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -224,7 +209,6 @@ void reshape(int w, int h){
 	glViewport(0, 0, w, h);
 	gluPerspective(45,ratio,1,1000);
 	glMatrixMode(GL_MODELVIEW);
-
 }
 
 int main(int argc, char** argv){
