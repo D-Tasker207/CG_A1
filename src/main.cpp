@@ -8,7 +8,7 @@
 #include <iostream>
 #include "utils.h"
 #include "Teapot.h"
-#include "Floor.h"
+// #include "Plane.h"
 #include "Material.h"
 
 // camera variables
@@ -22,33 +22,38 @@ int camMoveAmount = 2;
 float teapotAngle = 0.0;  //Rotation angle of teapot
 int teapotRotationSpeed = 5;
 
+// Scene Objects
 Teapot teapot1(new Material(
-    new float[4]{0.2, 0.0, 0.0, 1.0},
-    new float[4]{0.8, 0.0, 0.0, 1.0},
-    new float[4]{0.0, 0.0, 0.0, 1.0},
-    0.0
+    new float[4] {0.2, 0.0, 0.0, 1.0}, // Ambient color
+    new float[4] {0.8, 0.0, 0.0, 1.0}, // Diffuse
+    new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
+    0.0 // Shininess
 ));
 
 Teapot teapot2(new Material(
-    new float[4]{0.0, 0.0, 0.2, 1.0},
-    new float[4]{0.0, 0.0, 0.8, 1.0},
-    new float[4]{0.3, 0.3, 0.3, 1.0},
-    10.0
+    new float[4] {0.0, 0.0, 0.2, 1.0}, // Ambient
+    new float[4] {0.0, 0.0, 0.8, 1.0}, // Diffuse
+    new float[4] {0.5, 0.5, 0.5, 1.0}, // Specular
+    10.0 // Shininess
 ));
 
 Teapot teapot3(new Material(
-    new float[4]{0.0, 0.2, 0.0, 1.0},
-    new float[4]{0.0, 0.8, 0.0, 1.0},
-    new float[4]{1.0, 1.0, 1.0, 1.0},
-    128.0
+    new float[4] {0.0, 0.2, 0.0, 1.0}, // Ambient
+    new float[4] {0.0, 0.8, 0.0, 1.0}, // Diffuse
+    new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
+    128.0 // Shininess
 ));
 
-Floor floorPlane(new Material(
-    new float[4]{0.5, 0.5, 0.5, 1.0},
-    new float[4]{0.5, 0.5, 0.5, 1.0},
-    new float[4]{1.0, 1.0, 1.0, 1.0},
-    10.0
-), new float[3]{0.0, 0.5, 0.0});
+// Plane floorPlane(new Material(
+//         new float[4] {0.4, 0.4, 0.4, 1.0}, // Ambient
+//         new float[4] {0.4, 0.4, 0.4, 1.0}, // Diffuse
+//         new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
+//         0.0), // Shininess
+//     new float[4]{0.0, 1.0, 0.0, 0.0}, // Plane Coefficients
+//     new float[2]{-50.0, 50.0}, // X Range
+//     new float[2]{-50.0, 50.0}, // Z Range
+//     new float[3]{0.0, 0.8, 0.0} // Line Color
+// );
 
 // FPS Counter Variables
 int frameCount = 0;
@@ -91,14 +96,10 @@ void displayFPS(){
 }
 
 void display(void){ 
-    float lpos[4] = {0., 10., 10., 1.0};  //light's position
-    float lcol[4] = {1.0, 1.0, 1.0, 1.0};  //light's colour
-    float shadowMat[16] = {
-        lpos[1], 0, 0, 0,
-        -lpos[0], 0, -lpos[2], 0,
-        0, 0, lpos[1], 0,
-        0, 0, 0, lpos[1]
-    };
+    float lpos[4] = {2., 5., 5., 1.0};  //light's position
+    float **shadowMat, **shadowMatTransposed;
+    getShadowMat(lpos, new float[4] {0, 1, 0, 0}, shadowMat); //floorPlane.getComponents()
+    transpose(shadowMat, shadowMatTransposed);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
@@ -110,12 +111,16 @@ void display(void){
     // gluLookAt(5, 5, 5, 0, 0, 0, 0, 1, 0);
 
     glLightfv(GL_LIGHT0,GL_POSITION, lpos);   //Set light position
-    glLightfv(GL_LIGHT0,GL_DIFFUSE, lcol);    //Set light colour
+    glLightfv(GL_LIGHT0,GL_DIFFUSE, new float[3] {1.0, 1.0, 1.0});    //Set light colour
 
     displayFPS();
 
-    floorPlane.draw();
+    glCullFace(GL_BACK);
 
+    glPushMatrix();
+        glTranslatef(0, -0.01, 0.0);
+        // floorPlane.draw();
+    glPopMatrix();
     glPushMatrix();
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
         // glRotatef(60, 1,0,0);
@@ -127,12 +132,13 @@ void display(void){
         teapot3.draw();
     glPopMatrix();
 
-    // glCullFace(GL_FRONT);
+
+    glCullFace(GL_FRONT);
 
     glDisable(GL_LIGHTING);
     glPushMatrix();
         float shadowColor[4] = {0.2, 0.2, 0.22, 1};
-        glMultMatrixf(shadowMat);
+        glMultMatrixf((float*)shadowMatTransposed);
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
         // glRotatef(60, 1,0,0);
         glTranslatef(0, 0, -5);
@@ -144,18 +150,23 @@ void display(void){
     glPopMatrix();
     glEnable(GL_LIGHTING);
 
+    for (int i = 0; i < 4; ++i)
+        delete[] shadowMat[i];
+    delete[] shadowMat;
+
 	glutSwapBuffers(); 
 }
 
 void initialize(void){
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 
     glEnable(GL_LIGHTING);		//Enable OpenGL states
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glEnable(GL_MULTISAMPLE);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -189,12 +200,6 @@ void keyHandler(unsigned char key, int x, int y){
     switch(key){
         case 27:
             exit(0);
-            break;
-        case 'a':
-            camY += camMoveAmount;
-            break;
-        case 'z':
-            camY -= camMoveAmount;
             break;
         default:
             return;

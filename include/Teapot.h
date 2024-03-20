@@ -6,8 +6,11 @@
 
 class Teapot : public Drawable {
     public:
-        Teapot(Material* material) : Drawable(material) {}
-        void drawObject() override;
+        Teapot(Material* material) : Drawable() {
+            addMaterial("default", material);
+        }
+        void draw() override;
+        void drawShadows(float shadowColor[4]) override;
 };
 
 #endif

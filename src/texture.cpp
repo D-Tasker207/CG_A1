@@ -8,10 +8,11 @@
 
 #include "Texture.h"
 #include "stb_image.h"
+#include <string>
 #include <iostream>
 #include <GL/freeglut.h>
 
-Texture::Texture(const char* imgPath){
+Texture::Texture(std::string imgPath){
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -21,7 +22,7 @@ Texture::Texture(const char* imgPath){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, channels;
-    unsigned char* imgData = stbi_load(imgPath, &width, &height, &channels, 0);
+    unsigned char* imgData = stbi_load(imgPath.c_str(), &width, &height, &channels, 0);
     if (imgData){
         switch(channels){
             case 1:

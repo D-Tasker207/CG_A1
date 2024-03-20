@@ -1,9 +1,11 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include <string>
+
 class Texture {
     public:
-        Texture(const char* imgPath);
+        Texture(std::string imgPath);
         void bind(unsigned int uint);
     private:
         unsigned int textureID;
