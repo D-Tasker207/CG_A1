@@ -2,7 +2,6 @@
 #define TEAPOT_H
 
 #include "Drawable.h"
-#include <GL/freeglut.h>
 
 class Teapot : public Drawable {
     public:

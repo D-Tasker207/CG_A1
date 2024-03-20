@@ -2,9 +2,6 @@
 #define FLOOR_H
 
 #include "Drawable.h"
-#include "utils.h"
-#include <GL/freeglut.h>
-#include <algorithm>
 
 class Plane : public Drawable {
     public:

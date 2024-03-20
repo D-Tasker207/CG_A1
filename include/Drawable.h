@@ -22,7 +22,7 @@ class Drawable {
         virtual void drawShadows(float shadowColor[4]) = 0;
 
         void addMaterial(std::string materialName, Material* material) { this->materials[materialName] = material; };
-        void addTexture(std::string textureName, std::string imgPath) { this->textures[textureName] = new Texture(imgPath); };
+        void addTexture(std::string textureName, Texture* texture) { this->textures[textureName] = texture; };
         Texture* getTexture(std::string textureName) { return this->textures[textureName]; };
         Material* getMaterial(std::string materialName) { return this->materials[materialName]; };
 

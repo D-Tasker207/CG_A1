@@ -2,6 +2,7 @@
 #define GL_SILENCE_DEPRECATION
 #endif
 
+#include <string>
 #include "Material.h"
 #include <GL/freeglut.h>    
 

@@ -1,8 +1,6 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "Texture.h"
-
 class Material {
     public: 
         Material(float ambient[4], float diffuse[4], float specular[4], float shininess);

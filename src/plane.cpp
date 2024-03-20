@@ -3,7 +3,6 @@
 #endif
 
 #include "Plane.h"
-#include "utils.h"
 #include <GL/freeglut.h>
 
 Plane::Plane(Material* material, float components[4], float xRange[2], float zRange[2], float lineColor[4]) {

@@ -8,18 +8,23 @@
 
 #include "Texture.h"
 #include "stb_image.h"
-#include <string>
+#include <filesystem>
 #include <iostream>
 #include <GL/freeglut.h>
 
-Texture::Texture(std::string imgPath){
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+static std::string getBasePath(const std::string& filePath);
+
+Texture::Texture(std::string imgName){
+    glGenTextures(1, &this->textureID);
+    glBindTexture(GL_TEXTURE_2D, this->textureID);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    std::string basePath = getBasePath(__FILE__);
+    std::string imgPath = basePath + TEXTURE_PATH + imgName;
 
     int width, height, channels;
     unsigned char* imgData = stbi_load(imgPath.c_str(), &width, &height, &channels, 0);
@@ -35,12 +40,19 @@ Texture::Texture(std::string imgPath){
                 glTexImage2D(GL_TEXTURE_2D, 0, channels, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData);
                 break;  
         }
+        stbi_image_free(imgData);
     } else {
         std::cout << "Failed to load texture" << std::endl;
     }
 }
 
 void Texture::bind(unsigned int unit){
-    glActiveTexture(GL_TEXTURE0 + unit);
+    // glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, textureID);
+}
+
+static std::string getBasePath(const std::string& filePath) {
+        // This function extracts the base path (directory) from the file path
+        size_t found = filePath.find_last_of("/\\");
+        return filePath.substr(0, found);
 }
