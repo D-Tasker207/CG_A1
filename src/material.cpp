@@ -7,11 +7,9 @@
 
 
 Material::Material(float ambient[4], float diffuse[4], float specular[4], float shininess) {
-    for (int i = 0; i < 4; i++) {
-        this->ambient[i] = ambient[i];
-        this->diffuse[i] = diffuse[i];
-        this->specular[i] = specular[i];
-    }
+    std::copy(ambient, ambient + 4, this->ambient);
+    std::copy(diffuse, diffuse + 4, this->diffuse);
+    std::copy(specular, specular + 4, this->specular);
     this->shininess = shininess;
 }
 

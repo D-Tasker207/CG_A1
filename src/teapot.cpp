@@ -5,6 +5,10 @@
 #include <GL/freeglut.h>
 #include "Teapot.h"
 
+Teapot::Teapot(Material* material) {
+    addMaterial("default", material);
+}
+
 void Teapot::draw() {
     getMaterial("default")->apply();
     glutSolidTeapot(1);

@@ -10,7 +10,6 @@ using namespace std;
 
 class Drawable {
     public:
-        Drawable() {}
         /*
         * MUST ENABLE LIGHTING BEFORE FUNCTION CALL
         * MUST ENABLE TEXTURE BEFORE FUNCTION CALL IF TEXTURE IS USED
@@ -27,9 +26,9 @@ class Drawable {
         Texture* getTexture(std::string textureName) { return this->textures[textureName]; };
         Material* getMaterial(std::string materialName) { return this->materials[materialName]; };
 
-        private:
-            std::unordered_map<std::string, Material*> materials;
-            std::unordered_map<std::string, Texture*> textures;
+    private:
+        std::unordered_map<std::string, Material*> materials;
+        std::unordered_map<std::string, Texture*> textures;
 };
 
 #endif

@@ -8,8 +8,7 @@
 #include <iostream>
 #include "utils.h"
 #include "Teapot.h"
-// #include "Plane.h"
-#include "Material.h"
+#include "Plane.h"
 
 // camera variables
 float camX = 10, camY = 2, camZ = 0; //Camera position
@@ -44,16 +43,16 @@ Teapot teapot3(new Material(
     128.0 // Shininess
 ));
 
-// Plane floorPlane(new Material(
-//         new float[4] {0.4, 0.4, 0.4, 1.0}, // Ambient
-//         new float[4] {0.4, 0.4, 0.4, 1.0}, // Diffuse
-//         new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
-//         0.0), // Shininess
-//     new float[4]{0.0, 1.0, 0.0, 0.0}, // Plane Coefficients
-//     new float[2]{-50.0, 50.0}, // X Range
-//     new float[2]{-50.0, 50.0}, // Z Range
-//     new float[3]{0.0, 0.8, 0.0} // Line Color
-// );
+Plane floorPlane(new Material(
+        new float[4] {0.4, 0.4, 0.4, 1.0}, // Ambient
+        new float[4] {0.4, 0.4, 0.4, 1.0}, // Diffuse
+        new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
+        0.0), // Shininess
+    new float[4]{0.0, 1.0, 0.0, 0.0}, // Plane Coefficients
+    new float[2]{-50.0, 50.0}, // X Range
+    new float[2]{-50.0, 50.0}, // Z Range
+    new float[3]{0.0, 0.8, 0.0} // Line Color
+);
 
 // FPS Counter Variables
 int frameCount = 0;
@@ -96,10 +95,9 @@ void displayFPS(){
 }
 
 void display(void){ 
-    float lpos[4] = {2., 5., 5., 1.0};  //light's position
-    float **shadowMat, **shadowMatTransposed;
-    getShadowMat(lpos, new float[4] {0, 1, 0, 0}, shadowMat); //floorPlane.getComponents()
-    transpose(shadowMat, shadowMatTransposed);
+    float lpos[4] = {2., 5., 5., 0.0};  //light's position
+    float shadowMat[16];
+    getShadowMat(lpos, floorPlane.getComponents(), shadowMat);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
@@ -111,6 +109,7 @@ void display(void){
     // gluLookAt(5, 5, 5, 0, 0, 0, 0, 1, 0);
 
     glLightfv(GL_LIGHT0,GL_POSITION, lpos);   //Set light position
+
     glLightfv(GL_LIGHT0,GL_DIFFUSE, new float[3] {1.0, 1.0, 1.0});    //Set light colour
 
     displayFPS();
@@ -119,7 +118,7 @@ void display(void){
 
     glPushMatrix();
         glTranslatef(0, -0.01, 0.0);
-        // floorPlane.draw();
+        floorPlane.draw();
     glPopMatrix();
     glPushMatrix();
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
@@ -138,9 +137,9 @@ void display(void){
     glDisable(GL_LIGHTING);
     glPushMatrix();
         float shadowColor[4] = {0.2, 0.2, 0.22, 1};
-        glMultMatrixf((float*)shadowMatTransposed);
+        glMultMatrixf((float*)shadowMat);
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
-        // glRotatef(60, 1,0,0);
+        glRotatef(60, 1,0,0);
         glTranslatef(0, 0, -5);
         teapot1.drawShadows(shadowColor);
         glTranslatef(0, 0, 5);
@@ -149,10 +148,6 @@ void display(void){
         teapot3.drawShadows(shadowColor);
     glPopMatrix();
     glEnable(GL_LIGHTING);
-
-    for (int i = 0; i < 4; ++i)
-        delete[] shadowMat[i];
-    delete[] shadowMat;
 
 	glutSwapBuffers(); 
 }
