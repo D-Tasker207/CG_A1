@@ -52,15 +52,16 @@ void createSceneObjects(){
     ));
 
     floorPlane = new Plane(new Material(
-            new float[4] {0.7, 0.7, 0.7, 1.0}, // Ambient
-            new float[4] {0.7, 0.7, 0.7, 1.0}, // Diffuse
+            new float[4] {0.6, 0.6, 0.6, 1.0}, // Ambient
+            new float[4] {0.6, 0.6, 0.6, 1.0}, // Diffuse
             new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
             0.0), // Shininess
         new float[4]{0.0, 1.0, 0.0, 0.0}, // Plane Coefficients
         new float[2]{-50.0, 50.0}, // X Range
-        new float[2]{-50.0, 50.0}, // Z Range
-        new float[3]{0.0, 0.8, 0.0} // Line Color
+        new float[2]{-50.0, 50.0} // Z Range
     );
+    floorPlane->setTextureScaling(10.0, 10.0);
+    floorPlane->addTexture("floor", new Texture("sand_02_diff_1k.jpg"));
 
     skyDome = new SkyDome();
 }
@@ -78,7 +79,7 @@ void destroySceneObjects(){
 }
 
 void display(void){ 
-    float lpos[4] = {2., 5., 5., 0.0};  //light's position
+    float lpos[4] = {-2., 5., 5., 0.0};  //light's position
     float shadowMat[16];
     getShadowMat(lpos, floorPlane->getComponents(), shadowMat);
 
@@ -93,22 +94,22 @@ void display(void){
 
     glLightfv(GL_LIGHT0,GL_POSITION, lpos);   //Set light position
 
-    glLightfv(GL_LIGHT0,GL_DIFFUSE, new float[3] {1.0, 1.0, 1.0});    //Set light colour
-
     displayFPS();
 
-    // glCullFace(GL_BACK);
+    glCullFace(GL_BACK);
+    glEnable(GL_TEXTURE_2D);
 
     glPushMatrix();
         glTranslatef(0, -0.01, 0.0);
+        floorPlane->getTexture("floor")->bind(0);
         floorPlane->draw();
     glPopMatrix();
 
-    glEnable(GL_TEXTURE_2D);
+    
     glPushMatrix();
-        glRotatef(-90.0, 1.0, 0.0, 0.0);
         skyDome->draw();
     glPopMatrix();
+
     glDisable(GL_TEXTURE_2D);
 
     glPushMatrix();
@@ -123,11 +124,12 @@ void display(void){
     glPopMatrix();
 
 
-    // glCullFace(GL_FRONT);
+    glCullFace(GL_FRONT);
 
     glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
     glPushMatrix();
-        float shadowColor[4] = {0.2, 0.2, 0.22, 1};
+        float shadowColor[4] = {0.1, 0.1, 0.11, 0.8};
         glMultMatrixf((float*)shadowMat);
         glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
         glTranslatef(0, 0, -5);
@@ -138,22 +140,30 @@ void display(void){
         teapots[2]->drawShadows(shadowColor);
     glPopMatrix();
     glEnable(GL_LIGHTING);
+    glDisable(GL_BLEND);
 
 	glutSwapBuffers(); 
+    glutPostRedisplay();
 }
 
 void initialize(void){
-    glClearColor(0.5, 0.5, 0.5, 1.0);
-
     createSceneObjects();
 
+    glClearColor(0.5, 0.5, 0.5, 1.0);
+    glClearDepth(1.0);
     glEnable(GL_LIGHTING);		//Enable OpenGL states
     glEnable(GL_LIGHT0);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glEnable(GL_MULTISAMPLE);
-    // glEnable(GL_CULL_FACE);
-    // glFrontFace(GL_CW);
+
+    glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -210,10 +220,68 @@ int main(int argc, char** argv){
     glutInitWindowSize(1920, 1080);
     glutCreateWindow("Assignment 1");
     glutDisplayFunc(display);
-    glutIdleFunc(display);
     glutKeyboardFunc(keyHandler);
     glutSpecialFunc(specialKeyHandler);
     glutReshapeFunc(reshape);
     initialize();
     glutMainLoop();
 }
+
+
+
+// //--------------------------------------------------------------------------------
+// void initialise() {
+// 	loadTexture();  	
+
+// 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f); 	 //Background
+// 	glClearDepth(1.0f);  	
+// 	glEnable(GL_DEPTH_TEST);   	
+// 	glEnable(GL_NORMALIZE);
+// 	glEnable(GL_LIGHTING);
+// 	glEnable(GL_LIGHT0);
+	
+//     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);  //Default
+// 	glEnable(GL_COLOR_MATERIAL);
+	
+// 	q = gluNewQuadric();
+// 	gluQuadricDrawStyle (q, GLU_FILL );
+// 	gluQuadricNormals	(q, GLU_SMOOTH );
+// 	glEnable(GL_TEXTURE_2D);
+// 	gluQuadricTexture (q, GL_TRUE);
+
+// 	glMatrixMode(GL_PROJECTION);
+// 	glLoadIdentity();
+// 	gluPerspective(40.0, 2.0, 10., 100.);
+// }
+
+// //============================================================
+// void display() {
+// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+// 	glMatrixMode(GL_MODELVIEW);
+// 	glLoadIdentity();  	
+// 	gluLookAt(0., 0., 40., 0., 0., 0., 0., 1., 0.);
+	
+// 	glColor4f(1.0, 1.0, 1.0, 1.0);        //Base colour
+	
+// 	//Earth
+// 	glBindTexture(GL_TEXTURE_2D, txId[0]);
+// 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
+// 	glPushMatrix();
+// 		glRotatef(rotnEarthOrbit, 0, 1, 0);	//Rotate Earth about the Sun
+// 	    glTranslatef(20.0, 0.0, 0.0);			//Translate Earth along x-axis by 20 units	
+// 	    glRotatef(rotnEarthAxis, 0, 1, 0);       //Rotate about polar axis of the Earth
+// 	    glRotatef(-90., 1.0, 0., 0.0);			//make the sphere axis vertical
+// 	    gluSphere ( q, 3.0, 36, 17 );
+//     glPopMatrix();
+    
+// 	//Sun
+// 	glBindTexture(GL_TEXTURE_2D, txId[1]);
+// 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);	
+// 	glPushMatrix();		
+// 	    glRotatef(-90., 1.0, 0., 0.0);   //make the sphere axis vertical
+// 	    gluSphere ( q, 4.0, 36, 17 );
+//     glPopMatrix();
+    
+// 	glutSwapBuffers();
+// }
+

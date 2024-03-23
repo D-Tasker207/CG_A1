@@ -15,13 +15,8 @@
 static std::string getBasePath(const std::string& filePath);
 
 Texture::Texture(std::string imgName){
-    glGenTextures(1, &this->textureID);
-    glBindTexture(GL_TEXTURE_2D, this->textureID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
 
     std::string basePath = getBasePath(__FILE__);
     std::string imgPath = basePath + TEXTURE_PATH + imgName;
@@ -44,6 +39,11 @@ Texture::Texture(std::string imgName){
     } else {
         std::cout << "Failed to load texture" << std::endl;
     }
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void Texture::bind(unsigned int unit){
