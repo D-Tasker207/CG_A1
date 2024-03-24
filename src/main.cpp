@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "utils.h"
+#include "UFO.h"
 #include "Teapot.h"
 #include "SkyDome.h"
 #include "Plane.h"
@@ -26,6 +27,7 @@ int teapotRotationSpeed = 5;
 Teapot** teapots;
 Plane* floorPlane;
 SkyDome* skyDome;
+UFO* ufo;
 
 void createSceneObjects(){
     teapots = new Teapot*[3];
@@ -64,6 +66,8 @@ void createSceneObjects(){
     floorPlane->addTexture("floor", new Texture("sand_02_diff_1k.jpg"));
 
     skyDome = new SkyDome();
+
+    ufo = new UFO();
 }
 
 void destroySceneObjects(){
@@ -71,8 +75,10 @@ void destroySceneObjects(){
         delete teapots[i];
     }
     delete[] teapots;
+    delete ufo;
     delete floorPlane;
     delete skyDome;
+    ufo = nullptr;
     teapots = nullptr;
     floorPlane = nullptr;
     skyDome = nullptr;
@@ -113,14 +119,8 @@ void display(void){
     glDisable(GL_TEXTURE_2D);
 
     glPushMatrix();
-        glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
-        // glRotatef(60, 1,0,0);
-        glTranslatef(0, 0, -5);
-        teapots[0]->draw();
-        glTranslatef(0, 0, 5);
-        teapots[1]->draw();
-        glTranslatef(0, 0, 5);
-        teapots[2]->draw();
+        glTranslatef(0, 0, 0);
+        ufo->draw();
     glPopMatrix();
 
 
@@ -128,17 +128,17 @@ void display(void){
 
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
-    glPushMatrix();
-        float shadowColor[4] = {0.1, 0.1, 0.11, 0.8};
-        glMultMatrixf((float*)shadowMat);
-        glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
-        glTranslatef(0, 0, -5);
-        teapots[0]->drawShadows(shadowColor);
-        glTranslatef(0, 0, 5);
-        teapots[1]->drawShadows(shadowColor);
-        glTranslatef(0, 0, 5);
-        teapots[2]->drawShadows(shadowColor);
-    glPopMatrix();
+    // glPushMatrix();
+    //     float shadowColor[4] = {0.1, 0.1, 0.11, 0.8};
+    //     glMultMatrixf((float*)shadowMat);
+    //     glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
+    //     glTranslatef(0, 0, -5);
+    //     teapots[0]->drawShadows(shadowColor);
+    //     glTranslatef(0, 0, 5);
+    //     teapots[1]->drawShadows(shadowColor);
+    //     glTranslatef(0, 0, 5);
+    //     teapots[2]->drawShadows(shadowColor);
+    // glPopMatrix();
     glEnable(GL_LIGHTING);
     glDisable(GL_BLEND);
 
@@ -163,7 +163,7 @@ void initialize(void){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CW);
+    glFrontFace(GL_CCW);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -199,6 +199,12 @@ void keyHandler(unsigned char key, int x, int y){
             destroySceneObjects();
             exit(0);
             break;
+        case 'a':
+            camY += 0.2;
+            break;
+        case 'z':
+            camY -= 0.2;
+            break;
         default:
             return;
     }
@@ -226,62 +232,3 @@ int main(int argc, char** argv){
     initialize();
     glutMainLoop();
 }
-
-
-
-// //--------------------------------------------------------------------------------
-// void initialise() {
-// 	loadTexture();  	
-
-// 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f); 	 //Background
-// 	glClearDepth(1.0f);  	
-// 	glEnable(GL_DEPTH_TEST);   	
-// 	glEnable(GL_NORMALIZE);
-// 	glEnable(GL_LIGHTING);
-// 	glEnable(GL_LIGHT0);
-	
-//     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);  //Default
-// 	glEnable(GL_COLOR_MATERIAL);
-	
-// 	q = gluNewQuadric();
-// 	gluQuadricDrawStyle (q, GLU_FILL );
-// 	gluQuadricNormals	(q, GLU_SMOOTH );
-// 	glEnable(GL_TEXTURE_2D);
-// 	gluQuadricTexture (q, GL_TRUE);
-
-// 	glMatrixMode(GL_PROJECTION);
-// 	glLoadIdentity();
-// 	gluPerspective(40.0, 2.0, 10., 100.);
-// }
-
-// //============================================================
-// void display() {
-// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-// 	glMatrixMode(GL_MODELVIEW);
-// 	glLoadIdentity();  	
-// 	gluLookAt(0., 0., 40., 0., 0., 0., 0., 1., 0.);
-	
-// 	glColor4f(1.0, 1.0, 1.0, 1.0);        //Base colour
-	
-// 	//Earth
-// 	glBindTexture(GL_TEXTURE_2D, txId[0]);
-// 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	
-// 	glPushMatrix();
-// 		glRotatef(rotnEarthOrbit, 0, 1, 0);	//Rotate Earth about the Sun
-// 	    glTranslatef(20.0, 0.0, 0.0);			//Translate Earth along x-axis by 20 units	
-// 	    glRotatef(rotnEarthAxis, 0, 1, 0);       //Rotate about polar axis of the Earth
-// 	    glRotatef(-90., 1.0, 0., 0.0);			//make the sphere axis vertical
-// 	    gluSphere ( q, 3.0, 36, 17 );
-//     glPopMatrix();
-    
-// 	//Sun
-// 	glBindTexture(GL_TEXTURE_2D, txId[1]);
-// 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);	
-// 	glPushMatrix();		
-// 	    glRotatef(-90., 1.0, 0., 0.0);   //make the sphere axis vertical
-// 	    gluSphere ( q, 4.0, 36, 17 );
-//     glPopMatrix();
-    
-// 	glutSwapBuffers();
-// }
-

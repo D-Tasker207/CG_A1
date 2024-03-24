@@ -44,14 +44,14 @@ void Plane::draw() {
                 glTexCoord2f(uScale*(i+xRange[0])/totalXRange, vScale*(j+zRange[0])/totalZRange);
                 glVertex3f(i, calculateY(i, j), j);
                 
-                glTexCoord2f(uScale*((i+1)+zRange[0])/totalXRange, vScale*(j+zRange[0])/totalZRange);
-                glVertex3f(i+1, calculateY(i+1, j), j);
-                
-                glTexCoord2f(uScale*((i+1)+zRange[0])/totalXRange, vScale*((j+1)+zRange[0])/totalZRange);
-                glVertex3f(i+1, calculateY(i+1, j+1), j+1);
-                
                 glTexCoord2f(uScale*(i+xRange[0])/totalXRange, vScale*((j+1)+zRange[0])/totalZRange);
                 glVertex3f(i, calculateY(i, j+1), j+1);
+
+                glTexCoord2f(uScale*((i+1)+zRange[0])/totalXRange, vScale*((j+1)+zRange[0])/totalZRange);
+                glVertex3f(i+1, calculateY(i+1, j+1), j+1);
+
+                glTexCoord2f(uScale*((i+1)+zRange[0])/totalXRange, vScale*(j+zRange[0])/totalZRange);
+                glVertex3f(i+1, calculateY(i+1, j), j);
             }
         }
     glEnd();

@@ -9,6 +9,7 @@ SkyDome::SkyDome() : quadric(gluNewQuadric()){
     addTexture("sky", new Texture("Skydome.hdr"));
     gluQuadricDrawStyle(quadric, GLU_FILL);
     gluQuadricNormals(quadric, GLU_SMOOTH);
+    gluQuadricOrientation(quadric, GLU_INSIDE);
     glEnable(GL_TEXTURE_2D);
     gluQuadricTexture(quadric, GL_TRUE);
 }
