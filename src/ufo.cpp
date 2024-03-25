@@ -3,18 +3,17 @@
 #endif
 
 #include "UFO.h"
+#include "utils.h"
 #include <GL/freeglut.h>
 #include <cmath>
 #include <iostream>
 
-static void computeRevNormals(float x[], float y[], float vnx[], float vny[], int n);
-
 UFO::UFO() {
     addMaterial("body", new Material(
-        new float[4] {0.6, 0.6, 0.6, 1.0}, // Ambient
-        new float[4] {0.6, 0.6, 0.6, 1.0}, // Diffuse
-        new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
-        0.0 // Shininess
+        new float[4] {0.73, 0.73, 0.8, 1.0}, // Ambient
+        new float[4] {0.73, 0.73, 0.8, 1.0}, // Diffuse
+        new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
+        10.0 // Shininess
     ));
 
     addMaterial("canopy", new Material(
@@ -32,8 +31,8 @@ UFO::UFO() {
     ));
 
     addMaterial("antenna_dish", new Material(
-        new float[4] {0.75, 0.75, 0.75, 1.0}, // Ambient
-        new float[4] {0.75, 0.75, 0.75, 1.0}, // Diffuse
+        new float[4] {1, 1, 1, 1.0}, // Ambient
+        new float[4] {1, 1, 1, 1.0}, // Diffuse
         new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
         128.0 // Shininess
     ));
@@ -44,13 +43,41 @@ UFO::UFO() {
         new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
         64.0 // Shininess
     ));
+
+    addTexture("dish", new Texture("rusty_metal_sheet_diff_1k.jpg"));
+    
+    addMaterial("legs", new Material(
+        new float[4] {0.0, 0.0, 0.75, 1.0}, // Ambient
+        new float[4] {0.0, 0.0, 0.75, 1.0}, // Diffuse
+        new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
+        0.0 // Shininess
+    ));
+
+    addMaterial("feet", new Material(
+        new float[4] {0.8, 0.0, 0.0, 1.0}, // Ambient
+        new float[4] {0.8, 0.0, 0.0, 1.0}, // Diffuse
+        new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
+        0.0 // Shininess
+    ));
+
+    q = gluNewQuadric();
+    gluQuadricNormals(q, GLU_SMOOTH);
+    gluQuadricDrawStyle(q, GLU_FILL);
 }
 
 void UFO::draw() {
-    drawBody();
-    drawCanopy();
-    drawLights();
-    drawAntenna();
+    glPushMatrix();
+        glTranslatef(0, 1, 0);
+        drawBody();
+        drawCanopy();
+        drawLights();
+        drawAntenna();
+        glEnable(GL_TEXTURE_2D);
+            drawDish();
+        glDisable(GL_TEXTURE_2D);
+        drawAntennaBase();
+    glPopMatrix();
+    drawLegs();
 }
 
 void UFO::drawShadows(float shadowColor[4]) {
@@ -58,54 +85,24 @@ void UFO::drawShadows(float shadowColor[4]) {
     glColor4fv(shadowColor);
 
     drawBody();
-    drawCanopy();
-    drawLights();
-    drawAntenna();
+    // drawCanopy();
+    // drawLights();
+    // drawAntenna();
+    // drawDish();
+    // drawAntennaBase();
 }
 
 void UFO::drawBody() {
     getMaterial("body")->apply();
 
-    float vx[bodyRevolutionVertices], vy[bodyRevolutionVertices], vz[bodyRevolutionVertices];
-    float wx[bodyRevolutionVertices], wy[bodyRevolutionVertices], wz[bodyRevolutionVertices];
-    float angStep = 18;
-    int nSlices = 360 / angStep;
-    angStep = angStep * M_PI / 180;
-
-    for (int i = 0; i < bodyRevolutionVertices; i++){
-		vx[i] = bodyRevolutionLineX[i];
-		vy[i] = bodyRevolutionLineY[i];
-		vz[i] = 0;
-	}
+    const int nPoints = 16;
+    float vx[nPoints] = { 0, 5, 2.5, 2.5, 5, 10, 15, 20, 25, 25, 20, 15, 10, 7.5, 7.5, 0 };
+    float vy[nPoints] = { 0, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.75, 2.5, 3.5, 4.25, 4.75, 5, 5, 4, 4 };
+    float vz[nPoints] = { 0.0 };
 
     glPushMatrix();
         glScalef(0.3, 1.0, 0.3);
-        for (int j = 0; j < nSlices; j++){
-            for (int i = 0; i < bodyRevolutionVertices; i++){
-                wx[i] = cos(angStep) * vx[i] + sin(angStep) * vz[i];
-                wy[i] = vy[i];
-                wz[i] = -sin(angStep) * vx[i] + cos(angStep) * vz[i];	
-            }
-
-            glBegin(GL_QUAD_STRIP);
-                for (int i = 0; i < bodyRevolutionVertices; i++){
-                    float edge1[3] = {wx[i] - vx[i], wy[i] - vy[i], wz[i] - vz[i]};
-                    float edge2[3] = {wx[(i+1)%bodyRevolutionVertices] - vx[i], wy[(i+1)%bodyRevolutionVertices] - vy[i], wz[(i+1)%bodyRevolutionVertices] - vz[i]};
-
-                    glTexCoord2f((float)j / nSlices, (float)i / (bodyRevolutionVertices-1));
-                    glNormal3f(edge1[1]*edge2[2] - edge1[2]*edge2[1], edge1[2]*edge2[0] - edge1[0]*edge2[2], edge1[0]*edge2[1] - edge1[1]*edge2[0]);
-                    glVertex3f(vx[i], vy[i], vz[i]);
-                    glTexCoord2f((float)(j + 1) / nSlices, (float)i / (bodyRevolutionVertices-1));
-                    glVertex3f(wx[i], wy[i], wz[i]);
-                }
-            glEnd();
-
-            for (int i = 0; i < bodyRevolutionVertices; i++){
-                vx[i] = wx[i];
-                vy[i] = wy[i];
-                vz[i] = wz[i];
-            }
-        }
+        drawRevolution(vx, vy, vz, nPoints, 18, NORMAL);
     glPopMatrix();
 }
 
@@ -113,57 +110,19 @@ void UFO::drawCanopy() {
     getMaterial("canopy")->apply();
 
     const int nPoints = 11;
-
     float vx[nPoints] = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
     float vy[nPoints], vz[nPoints] = { 0.0 };
-    float wx[nPoints], wy[nPoints], wz[nPoints] = { 0.0 };
 
     for(int i = 0; i < nPoints; i++){
         vy[i] = -pow(vx[i], 4) + 1;
     }
-
-    float nx[nPoints], ny[nPoints], nz[nPoints] = { 0.0 };
-    float mx[nPoints], my[nPoints], mz[nPoints];
-
-    computeRevNormals(vx, vy, nx, ny, nPoints);
-
-    float angStep = 36;
-    int nSlices = 360 / angStep;
-    angStep = angStep * M_PI / 180;
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glPushMatrix();
         glTranslatef(0.0, 5, 0.0);
         glScalef(3, 2, 3);
-        for (int j = 0; j < nSlices; j++){ // Transform verts and normals
-            for (int i = 0; i < nPoints; i++){
-                wx[i] = cos(angStep) * vx[i] + sin(angStep) * vz[i];
-                wy[i] = vy[i];
-                wz[i] = -sin(angStep) * vx[i] + cos(angStep) * vz[i];
-                mx[i] = cos(angStep) * nx[i] + sin(angStep) * nz[i];
-                my[i] = ny[i];
-                mz[i] = -sin(angStep) * nx[i] + cos(angStep) * nz[i];
-            }
-            glBegin(GL_QUAD_STRIP); // Generate quad strip
-                for (int i = 0; i < nPoints; i++){
-                    glTexCoord2f((float)j / nSlices, (float)i / (bodyRevolutionVertices-1));
-                    glNormal3f(nx[i], ny[i], nz[i]);
-                    glVertex3f(vx[i], vy[i], vz[i]);
-                    glTexCoord2f((float)(j + 1) / nSlices, (float)i / (bodyRevolutionVertices-1));
-                    glNormal3f(mx[i], my[i], mz[i]);
-                    glVertex3f(wx[i], wy[i], wz[i]);
-                }
-            glEnd();
-            for (int i = 0; i < nPoints; i++){ // Update verts and normals
-                vx[i] = wx[i];
-                vy[i] = wy[i];
-                vz[i] = wz[i];
-                nx[i] = mx[i];
-                ny[i] = my[i];
-                nz[i] = mz[i];
-            }
-        }
+        drawRevolution(vx, vy, vz, nPoints, 36, REVERSED);
     glPopMatrix();
     glDisable(GL_BLEND);
 }
@@ -181,96 +140,99 @@ void UFO::drawLights() {
         glPushMatrix();
             glRotatef(i*360/nLights, 0, 1, 0);
             glScalef(0.5, 1, 0.5);
-            glTranslatef(12.4, 3, 0);
+            glTranslatef(14.5, 3, 0);
             glMaterialfv(GL_FRONT, GL_EMISSION, emissiveColor);
             glutSolidCube(1.0);
         glPopMatrix();
     }
 }
 
-void UFO::drawAntenna() {
+void UFO::drawAntenna() {  
+    glPushMatrix();
+        glTranslatef(6, 4.7, 0.0);
+        glPushMatrix();
+            glRotatef(dishAngle, 0, 1, 0);
+            glRotatef(-60, 1, 0, 0);
+            getMaterial("antenna")->apply();
+            glPushMatrix(); // Antenna
+                glRotatef(-90, 1, 0, 0);
+                gluCylinder(q, 0.1, 0.05, 0.3, 6, 1);
+                glTranslatef(0, 0, 0.3);
+                gluDisk(q, 0, 0.05, 6, 1);
+            glPopMatrix();
+        glPopMatrix();
+    glPopMatrix();
+}
+
+void UFO::drawDish(){
     getMaterial("antenna_dish")->apply();
 
     const int nPoints = 11;
     float vx[nPoints] = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
     float vy[nPoints], vz[nPoints] = { 0.0 };
-    float wx[nPoints], wy[nPoints], wz[nPoints];
 
     for(int i = 0; i < nPoints; i++){
         vy[i] = 0.5 * pow(vx[i], 2);
     }
 
-    float nx[nPoints], ny[nPoints], nz[nPoints] = { 0.0 };
-    float mx[nPoints], my[nPoints], mz[nPoints];
-
-    computeRevNormals(vx, vy, nx, ny, nPoints);
-
-    float angStep = 36;
-    int nSlices = 360 / angStep;
-    angStep = angStep * M_PI / 180;
     glPushMatrix();
-        glTranslatef(0.0, 5, 0.0);
+        glTranslatef(6, 4.7, 0.0);
 
         glPushMatrix();
-            glScalef(0.3, 0.3, 0.3);
-            for (int j = 0; j < nSlices; j++){ // Transform verts and normals
-                for (int i = 0; i < nPoints; i++){
-                    wx[i] = cos(angStep) * vx[i] + sin(angStep) * vz[i];
-                    wy[i] = vy[i];
-                    wz[i] = -sin(angStep) * vx[i] + cos(angStep) * vz[i];
-                    mx[i] = cos(angStep) * nx[i] + sin(angStep) * nz[i];
-                    my[i] = ny[i];
-                    mz[i] = -sin(angStep) * nx[i] + cos(angStep) * nz[i];
-                }
-                glBegin(GL_QUAD_STRIP); // Generate quad strip
-                    for (int i = 0; i < nPoints; i++){
-                        glTexCoord2f((float)j / nSlices, (float)i / (bodyRevolutionVertices-1));
-                        glNormal3f(nx[i], ny[i], nz[i]);
-                        glVertex3f(vx[i], vy[i], vz[i]);
-                        glTexCoord2f((float)(j + 1) / nSlices, (float)i / (bodyRevolutionVertices-1));
-                        glNormal3f(mx[i], my[i], mz[i]);
-                        glVertex3f(wx[i], wy[i], wz[i]);
-                    }
-                glEnd();
-                for (int i = 0; i < nPoints; i++){ // Update verts and normals
-                    vx[i] = wx[i];
-                    vy[i] = wy[i];
-                    vz[i] = wz[i];
-                    nx[i] = mx[i];
-                    ny[i] = my[i];
-                    nz[i] = mz[i];
-                }
-            }
-        glPopMatrix();
-
-        getMaterial("antenna")->apply();
-        glPushMatrix();
-
+            glRotatef(dishAngle, 0, 1, 0);
+            glRotatef(-60, 1, 0, 0);
+            getTexture("dish")->bind(0);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glPushMatrix(); // Dish
+                glScalef(0.6, 0.6, 0.6);
+                glDisable(GL_CULL_FACE);
+                drawRevolution(vx, vy, vz, nPoints, 36, NORMAL);
+                glEnable(GL_CULL_FACE);
+            glPopMatrix();
         glPopMatrix();
     glPopMatrix();
 }
 
-static void computeRevNormals(float x[], float y[], float vnx[], float vny[], int n){
-    float nx, ny, nz, dist;
+void UFO::drawAntennaBase(){
+    getMaterial("antenna")->apply();
 
-    for (int i = 0; i < n; i++)
-    {
-        if (i == 0){// End point of the curve
-            nx = y[1] - y[0];
-            ny = -x[1] + x[0];
+    glPushMatrix();
+        glTranslatef(6, 4.7, 0.0);
+        glPushMatrix(); // Base
+            glRotatef(90, 1, 0, 0);
+            gluCylinder(q, 0.1, 0.1, 0.7, 6, 1);
+        glPopMatrix();
+    glPopMatrix();
+}
+
+void UFO::drawLegs(){
+    glPushMatrix();
+        // glTranslatef(0, 5, 0);
+        for(int i = 0; i < 4; i++){
+            getMaterial("legs")->apply();
+            glRotatef(90*i, 0, 1, 0);
+            glTranslatef(5, 0, 0);
+            glPushMatrix(); // Leg
+                glRotatef(90, 1, 0, 0);
+                glRotatef(45, 0, 0, 1);
+                gluCylinder(q, 0.3, 0.3, 5, 6, 1);
+            glPopMatrix();
+
+            getMaterial("feet")->apply();
+
+            glTranslatef(0, 0, 0);
+            glPushMatrix(); // Foot
+                glTranslatef(0, 0, 1.5);
+                glRotatef(90, 1, 0, 0);
+                gluDisk(q, 0, 0.2, 6, 1);
+            glPopMatrix();
         }
-        else if (i == n - 1){ // End point of the curve
-            nx = y[i] - y[i - 1];
-            ny = -x[i] + x[i - 1];
-        }
-        else{ // All interior points
-            nx = y[i + 1] - y[i - 1];  // x-component of n1+n2
-            ny = -x[i + 1] + x[i - 1]; // y-component of n1+n2
-        }
-        dist = sqrt(nx * nx + ny * ny); // normalization
-        nx /= -dist;
-        ny /= -dist;
-        vnx[i] = nx; // Store values in an array
-        vny[i] = ny;
+    glPopMatrix();
+}
+
+void UFO::incDishAngle(){
+    dishAngle += 2;
+    if(dishAngle >= 360){
+        dishAngle = 0;
     }
 }

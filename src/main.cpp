@@ -18,11 +18,6 @@ float camRot = 0;
 int camRotAmount = 15;
 int camMoveAmount = 2;
 
-// animation variables
-// TODO: add additional animation models
-float teapotAngle = 0.0;  //Rotation angle of teapot
-int teapotRotationSpeed = 5;
-
 // Scene Objects
 Teapot** teapots;
 Plane* floorPlane;
@@ -30,33 +25,10 @@ SkyDome* skyDome;
 UFO* ufo;
 
 void createSceneObjects(){
-    teapots = new Teapot*[3];
-
-    teapots[0] = new Teapot(new Material(
-        new float[4] {0.2, 0.0, 0.0, 1.0}, // Ambient color
-        new float[4] {0.8, 0.0, 0.0, 1.0}, // Diffuse
-        new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
-        0.0 // Shininess
-    ));
-
-    teapots[1] = new Teapot(new Material(
-        new float[4] {0.0, 0.0, 0.2, 1.0}, // Ambient
-        new float[4] {0.0, 0.0, 0.8, 1.0}, // Diffuse
-        new float[4] {0.5, 0.5, 0.5, 1.0}, // Specular
-        10.0 // Shininess
-    ));
-
-    teapots[2] = new Teapot(new Material(
-        new float[4] {0.0, 0.2, 0.0, 1.0}, // Ambient
-        new float[4] {0.0, 0.8, 0.0, 1.0}, // Diffuse
-        new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
-        128.0 // Shininess
-    ));
-
     floorPlane = new Plane(new Material(
             new float[4] {0.6, 0.6, 0.6, 1.0}, // Ambient
             new float[4] {0.6, 0.6, 0.6, 1.0}, // Diffuse
-            new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
+            new float[4] {.0, 0.0, 0.0, 1.0}, // Specular
             0.0), // Shininess
         new float[4]{0.0, 1.0, 0.0, 0.0}, // Plane Coefficients
         new float[2]{-50.0, 50.0}, // X Range
@@ -84,6 +56,18 @@ void destroySceneObjects(){
     skyDome = nullptr;
 }
 
+void ufoDishIdle(int value){
+    ufo->incDishAngle();
+    glutTimerFunc(100, ufoDishIdle, 0);
+}
+
+// other idle animation callbacks can be added here
+
+void startIdleAnimations(){
+    glutTimerFunc(100, ufoDishIdle, 0);
+    // other idle animation callbacks can be added here
+}
+
 void display(void){ 
     float lpos[4] = {-2., 5., 5., 0.0};  //light's position
     float shadowMat[16];
@@ -108,6 +92,7 @@ void display(void){
     glPushMatrix();
         glTranslatef(0, -0.01, 0.0);
         floorPlane->getTexture("floor")->bind(0);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         floorPlane->draw();
     glPopMatrix();
 
@@ -128,17 +113,11 @@ void display(void){
 
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
-    // glPushMatrix();
-    //     float shadowColor[4] = {0.1, 0.1, 0.11, 0.8};
-    //     glMultMatrixf((float*)shadowMat);
-    //     glTranslatef(2, 2, 0); // TODO: translate the teapot to a new location
-    //     glTranslatef(0, 0, -5);
-    //     teapots[0]->drawShadows(shadowColor);
-    //     glTranslatef(0, 0, 5);
-    //     teapots[1]->drawShadows(shadowColor);
-    //     glTranslatef(0, 0, 5);
-    //     teapots[2]->drawShadows(shadowColor);
-    // glPopMatrix();
+    glPushMatrix();
+        float shadowColor[4] = {0.1, 0.1, 0.11, 0.8};
+        glMultMatrixf((float*)shadowMat);
+        ufo->drawShadows(shadowColor);
+    glPopMatrix();
     glEnable(GL_LIGHTING);
     glDisable(GL_BLEND);
 
@@ -152,6 +131,7 @@ void initialize(void){
     glClearColor(0.5, 0.5, 0.5, 1.0);
     glClearDepth(1.0);
     glEnable(GL_LIGHTING);		//Enable OpenGL states
+    glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
     glEnable(GL_LIGHT0);
 
     glEnable(GL_DEPTH_TEST);
@@ -230,5 +210,6 @@ int main(int argc, char** argv){
     glutSpecialFunc(specialKeyHandler);
     glutReshapeFunc(reshape);
     initialize();
+    startIdleAnimations();
     glutMainLoop();
 }
