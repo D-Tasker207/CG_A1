@@ -20,6 +20,8 @@ extern void getShadowMat(float lightPos[4], float planeCoef[4], float shadowMat[
 extern void computeFPS();
 extern void displayFPS();
 
+extern float getRandomFloat(float min, float max);
+
 extern void computeVertexNormals(float x[], float y[], float vnx[], float vny[], int n);
 extern void drawRevolution(float vx[], float vy[], float vz[], int nPoints, float angStep, NormalDirection normalDirection);
 

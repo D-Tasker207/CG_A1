@@ -7,12 +7,14 @@
 #include <string>
 #include <memory>
 #include <cmath>
+#include <random>
 
 void getShadowMat(float lightPos[4], float planeCoef[4], float shadowMat[16]);
 void computeFPS();
 void displayFPS();
 void computeVertexNormals(float x[], float y[], float vnx[], float vny[], int n);
 void drawRevolution(float vx[], float vy[], float vz[], int nPoints, float angStep, NormalDirection normalDirection);
+float getRandomNumber(float min, float max);
 
 void getShadowMat(float lightPos[4], float planeCoef[4], float shadowMat[16]) {
     float dot = planeCoef[0] * lightPos[0] +
@@ -160,4 +162,12 @@ void drawRevolution(float vx[], float vy[], float vz[], int nPoints, float angSt
             }
         }
     glPopMatrix();
+}
+
+float getRandomFloat(float min, float max){
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(min, max);
+
+    return dis(gen);
 }

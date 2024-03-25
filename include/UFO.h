@@ -1,6 +1,7 @@
 #ifndef UFO_H
 #define UFO_H
 
+#include "Particle.h"
 #include "Drawable.h"
 #include <GL/freeglut.h>
 
@@ -9,12 +10,17 @@ class UFO : public Drawable {
         UFO();
         void draw() override;
         void drawShadows(float shadowColor[4]) override;
+        void updateSmoke();
         void setDishAngle(float angle) { dishAngle = angle; };
         void incDishAngle();
+        void incTakeOffHeight(float keyframe);
         void takeOff();
 
     private:
         GLUquadric* q;
+        Particle* engineSmoke;
+        bool takingOff;
+        float takeOffHeight;
         float dishAngle;
 
         void drawBody();
@@ -24,6 +30,7 @@ class UFO : public Drawable {
         void drawDish();
         void drawAntennaBase();
         void drawLights();
+        void drawSmoke();
 };
 
 #endif

@@ -15,14 +15,16 @@
 // camera variables
 float camX = 10, camY = 2, camZ = 0; //Camera position
 float camRot = 0;
-int camRotAmount = 15;
+int camRotAmount = 10;
 int camMoveAmount = 2;
 
 // Scene Objects
-Teapot** teapots;
 Plane* floorPlane;
 SkyDome* skyDome;
 UFO* ufo;
+
+// Flags
+bool ufoTakingOff = false;
 
 void createSceneObjects(){
     floorPlane = new Plane(new Material(
@@ -43,28 +45,35 @@ void createSceneObjects(){
 }
 
 void destroySceneObjects(){
-    for (int i = 0; i < 3; i++){
-        delete teapots[i];
-    }
-    delete[] teapots;
     delete ufo;
     delete floorPlane;
     delete skyDome;
     ufo = nullptr;
-    teapots = nullptr;
     floorPlane = nullptr;
     skyDome = nullptr;
 }
 
-void ufoDishIdle(int value){
+void ufoDishIdleAnim(int value){
     ufo->incDishAngle();
-    glutTimerFunc(100, ufoDishIdle, 0);
+    glutTimerFunc(10, ufoDishIdleAnim, 0);
 }
 
-// other idle animation callbacks can be added here
+void ufoTakeOffAnim(int value){
+    ufo->incTakeOffHeight(value / 50.0);
+    if (value < 1000) glutTimerFunc(16, ufoTakeOffAnim, value + 5);
+}
+
+void ufoSmokeAnim(int value){
+    ufo->updateSmoke();
+    
+    glutTimerFunc(50, ufoSmokeAnim, 0);
+}
+// other animation callbacks can be added here
 
 void startIdleAnimations(){
-    glutTimerFunc(100, ufoDishIdle, 0);
+    glutTimerFunc(10, ufoDishIdleAnim, 0);
+    glutTimerFunc(50, ufoSmokeAnim, 0);
+
     // other idle animation callbacks can be added here
 }
 
@@ -97,9 +106,9 @@ void display(void){
     glPopMatrix();
 
     
-    glPushMatrix();
-        skyDome->draw();
-    glPopMatrix();
+    // glPushMatrix();
+    //     skyDome->draw();
+    // glPopMatrix();
 
     glDisable(GL_TEXTURE_2D);
 
@@ -107,6 +116,34 @@ void display(void){
         glTranslatef(0, 0, 0);
         ufo->draw();
     glPopMatrix();
+
+    // glPushMatrix();
+    //     glTranslatef(-10, 4, 0);
+    //     glEnable(GL_COLOR_MATERIAL);
+    //     {
+    //         // Alien head (sphere)
+    //         glColor3f(0.5, 0.8, 0.5); // Green color
+    //         glutSolidSphere(1.0, 20, 20);
+
+    //         // Alien eyes (spheres)
+    //         glPushMatrix();
+    //             glColor3f(1.0, 1.0, 1.0); // White color
+    //             glTranslatef(-0.3, 0.3, 0.5); // Left eye position
+    //             glutSolidSphere(0.2, 10, 10);
+    //             glTranslatef(0.6, 0.0, 0.0); // Right eye position
+    //             glutSolidSphere(0.2, 10, 10);
+    //         glPopMatrix();
+
+    //         // Alien mouth (cone)
+    //         glColor3f(1.0, 0.5, 0.5); // Red color
+    //         glPushMatrix();
+    //             glTranslatef(0.0, -0.7, 0.8); // Mouth position
+    //             glRotatef(90.0, 1.0, 0.0, 0.0); // Rotate cone to point upward
+    //             glutSolidCone(0.5, 1.0, 10, 10);
+    //         glPopMatrix();
+    //     }
+    //     glDisable(GL_COLOR_MATERIAL);
+    // glPopMatrix();
 
 
     glCullFace(GL_FRONT);
@@ -184,6 +221,12 @@ void keyHandler(unsigned char key, int x, int y){
             break;
         case 'z':
             camY -= 0.2;
+            break;
+        case ' ':
+            if (!ufoTakingOff){
+                ufoTakingOff = true;
+                glutTimerFunc(10, ufoTakeOffAnim, 0);
+            }
             break;
         default:
             return;

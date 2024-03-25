@@ -56,40 +56,53 @@ UFO::UFO() {
     addMaterial("feet", new Material(
         new float[4] {0.8, 0.0, 0.0, 1.0}, // Ambient
         new float[4] {0.8, 0.0, 0.0, 1.0}, // Diffuse
-        new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
+        new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
         0.0 // Shininess
     ));
 
     q = gluNewQuadric();
     gluQuadricNormals(q, GLU_SMOOTH);
     gluQuadricDrawStyle(q, GLU_FILL);
+
+    engineSmoke = new Particle(new float[3] {0, 1, 0}, new float[3] {0, -0.3, 0}, 5, 1, 200, new Texture("Glow.bmp"));
+
+    takingOff = false;
+    takeOffHeight = 0;
+    dishAngle = 0;
 }
 
 void UFO::draw() {
     glPushMatrix();
-        glTranslatef(0, 1, 0);
-        drawBody();
-        drawCanopy();
-        drawLights();
-        drawAntenna();
-        glEnable(GL_TEXTURE_2D);
-            drawDish();
-        glDisable(GL_TEXTURE_2D);
-        drawAntennaBase();
+        glTranslatef(0, takeOffHeight, 0);
+        glPushMatrix();
+            glTranslatef(0, 1, 0);
+            drawBody();
+            drawCanopy();
+            drawLights();
+            drawAntenna();
+            glEnable(GL_TEXTURE_2D);
+                drawDish();
+            glDisable(GL_TEXTURE_2D);
+            drawAntennaBase();
+        glPopMatrix();
+        drawLegs();
+        if (takingOff) drawSmoke();
     glPopMatrix();
-    drawLegs();
 }
 
 void UFO::drawShadows(float shadowColor[4]) {
     
     glColor4fv(shadowColor);
 
-    drawBody();
-    // drawCanopy();
-    // drawLights();
-    // drawAntenna();
-    // drawDish();
-    // drawAntennaBase();
+    glPushMatrix();
+        glTranslatef(0, takeOffHeight, 0);
+        drawBody();
+        // drawCanopy();
+        // drawLights();
+        // drawAntenna();
+        // drawDish();
+        // drawAntennaBase();
+    glPopMatrix();
 }
 
 void UFO::drawBody() {
@@ -207,32 +220,51 @@ void UFO::drawAntennaBase(){
 
 void UFO::drawLegs(){
     glPushMatrix();
-        // glTranslatef(0, 5, 0);
+        glTranslatef(0, 4, 0);
         for(int i = 0; i < 4; i++){
-            getMaterial("legs")->apply();
-            glRotatef(90*i, 0, 1, 0);
-            glTranslatef(5, 0, 0);
-            glPushMatrix(); // Leg
-                glRotatef(90, 1, 0, 0);
-                glRotatef(45, 0, 0, 1);
-                gluCylinder(q, 0.3, 0.3, 5, 6, 1);
+            glPushMatrix();
+                getMaterial("legs")->apply();
+                glRotatef(90*i, 0, 1, 0);
+                glTranslatef(3, 0, 0);
+                glPushMatrix(); // Leg
+                    glRotatef(90, 1, 0, 0);
+                    glRotatef(30, 0, 1, 0);
+                    gluCylinder(q, 0.3, 0.3, 4.5, 6, 1);
+                glPopMatrix();
             glPopMatrix();
 
             getMaterial("feet")->apply();
 
-            glTranslatef(0, 0, 0);
-            glPushMatrix(); // Foot
-                glTranslatef(0, 0, 1.5);
-                glRotatef(90, 1, 0, 0);
-                gluDisk(q, 0, 0.2, 6, 1);
+            glPushMatrix();
+                glTranslatef(0, -4, 0);
+                glRotatef(90*i, 0, 1, 0);
+                glPushMatrix(); // Foot
+                    glTranslatef(5.5, 0, 0);
+                    glScalef(1.5, 0.5, 1);
+                    glutSolidCube(1.0);
+                glPopMatrix();
             glPopMatrix();
         }
     glPopMatrix();
 }
 
+void UFO::drawSmoke(){
+    engineSmoke->drawParticles();
+}
+
+void UFO::updateSmoke(){
+    engineSmoke->incTick();
+    engineSmoke->updateParticles();
+}
+
 void UFO::incDishAngle(){
-    dishAngle += 2;
+    dishAngle += 1;
     if(dishAngle >= 360){
         dishAngle = 0;
     }
+}
+
+void UFO::incTakeOffHeight(float keyframe){
+    if (keyframe <= 10) takeOffHeight = (keyframe - sin(keyframe)) + 0.5 * keyframe;
+    else takeOffHeight = pow(keyframe, 2) / 6.433;
 }
