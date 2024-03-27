@@ -8,7 +8,7 @@
 #include <iostream>
 #include "utils.h"
 #include "UFO.h"
-#include "Teapot.h"
+#include "Alien.h"
 #include "SkyDome.h"
 #include "Plane.h"
 
@@ -19,6 +19,7 @@ int camRotAmount = 10;
 int camMoveAmount = 2;
 
 // Scene Objects
+Alien* alien;
 Plane* floorPlane;
 SkyDome* skyDome;
 UFO* ufo;
@@ -42,25 +43,32 @@ void createSceneObjects(){
     skyDome = new SkyDome();
 
     ufo = new UFO();
+
+    alien = new Alien();
 }
 
 void destroySceneObjects(){
+    delete alien;
     delete ufo;
     delete floorPlane;
     delete skyDome;
+    alien = nullptr;
     ufo = nullptr;
     floorPlane = nullptr;
     skyDome = nullptr;
 }
 
-void ufoDishIdleAnim(int value){
+void generalIdleAnim(int value){
+    if (value > 100) value = 1;
     ufo->incDishAngle();
-    glutTimerFunc(10, ufoDishIdleAnim, 0);
+    alien->setIdleHeight(value);
+    alien->setWalkingFrame(value);
+    glutTimerFunc(50, generalIdleAnim, value + 1);
 }
 
 void ufoTakeOffAnim(int value){
-    ufo->incTakeOffHeight(value / 50.0);
-    if (value < 1000) glutTimerFunc(16, ufoTakeOffAnim, value + 5);
+    ufo->incTakeOffHeight(value);
+    if (value < 2000) glutTimerFunc(15, ufoTakeOffAnim, value + 1);
 }
 
 void ufoSmokeAnim(int value){
@@ -71,7 +79,7 @@ void ufoSmokeAnim(int value){
 // other animation callbacks can be added here
 
 void startIdleAnimations(){
-    glutTimerFunc(10, ufoDishIdleAnim, 0);
+    glutTimerFunc(50, generalIdleAnim, 0);
     glutTimerFunc(50, ufoSmokeAnim, 0);
 
     // other idle animation callbacks can be added here
@@ -106,15 +114,21 @@ void display(void){
     glPopMatrix();
 
     
-    // glPushMatrix();
-    //     skyDome->draw();
-    // glPopMatrix();
+    glPushMatrix();
+        skyDome->draw();
+    glPopMatrix();
 
     glDisable(GL_TEXTURE_2D);
 
     glPushMatrix();
+        glScalef(0.8, 0.8, 0.8);
         glTranslatef(0, 0, 0);
         ufo->draw();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslatef(5, 1, 5);
+        alien->draw();
     glPopMatrix();
 
     // glPushMatrix();
@@ -228,6 +242,8 @@ void keyHandler(unsigned char key, int x, int y){
                 glutTimerFunc(10, ufoTakeOffAnim, 0);
             }
             break;
+        case 'x':
+            alien->setIsIdle(!alien->getIsIdle());
         default:
             return;
     }

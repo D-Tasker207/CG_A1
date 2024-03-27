@@ -264,7 +264,7 @@ void UFO::incDishAngle(){
     }
 }
 
-void UFO::incTakeOffHeight(float keyframe){
-    if (keyframe <= 10) takeOffHeight = (keyframe - sin(keyframe)) + 0.5 * keyframe;
-    else takeOffHeight = pow(keyframe, 2) / 6.433;
+void UFO::incTakeOffHeight(int keyframe){
+    if (keyframe <= 1000) takeOffHeight = (((float)keyframe / 1000) - sin(keyframe)) + 0.5 * ((float)keyframe / 1000);
+    else takeOffHeight = pow(((float) keyframe / 1000), 2) / 6.433;
 }

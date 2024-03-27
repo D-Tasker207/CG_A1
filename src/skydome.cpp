@@ -23,7 +23,7 @@ void SkyDome::draw() {
     getTexture("sky")->bind(0);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glRotatef(90, 1.0, 0.0, 0.0);
-    gluSphere(quadric, 100, 100, 100);
+    gluSphere(quadric, 100, 15, 15);
 }
 
 void SkyDome::drawShadows(float shadowColor[4]) {

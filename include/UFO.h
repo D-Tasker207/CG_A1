@@ -13,7 +13,7 @@ class UFO : public Drawable {
         void updateSmoke();
         void setDishAngle(float angle) { dishAngle = angle; };
         void incDishAngle();
-        void incTakeOffHeight(float keyframe);
+        void incTakeOffHeight(int keyframe);
         void takeOff();
 
     private:
