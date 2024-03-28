@@ -1,4 +1,4 @@
-# Template OpenGL & FreeGLUT Project
+COSC363 Assignment 1
 
 ## Description
 Basic C++ project that can be built on MacOS and (hopefully) Linux/Windows
