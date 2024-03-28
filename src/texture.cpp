@@ -46,6 +46,10 @@ Texture::Texture(std::string imgName){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
+Texture::~Texture(){
+    glDeleteTextures(1, &textureID);
+}
+
 void Texture::bind(unsigned int unit){
     // glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, textureID);

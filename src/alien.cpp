@@ -7,6 +7,7 @@
 
 Alien::Alien() : q(gluNewQuadric()) {
     walkingAngle = 0;
+    animPhase = 0;
     idleHeight = 0;
     leftForeArmAngle = 0;
     rightForeArmAngle = 0;
@@ -28,7 +29,7 @@ Alien::Alien() : q(gluNewQuadric()) {
     addMaterial("mouth", new Material(
         new float[4] {0.0, 0.0, 0.0, 1.0}, // Ambient
         new float[4] {0.0, 0.0, 0.0, 1.0}, // Diffuse
-        new float[4] {1.0, 1.0, 1.0, 1.0}, // Specular
+        new float[4] {0.0, 0.0, 0.0, 1.0}, // Specular
         10.0 // Shininess
     ));
 
@@ -90,11 +91,16 @@ void Alien::draw(){
 void Alien::drawShadows(float shadowColor[4]){
     glColor4fv(shadowColor);
 
-    drawBody();
-    drawEyes();
-    drawMouth();
+    glPushMatrix();
+        if (isIdle) glTranslatef(0, idleHeight, 0);
+        drawBody();
+        drawMouth();
+        drawArms();
+        drawEyes();
+    glPopMatrix();
+
+    drawFeet();
     drawLegs();
-    drawArms();
 }
 
 void Alien::drawBody(){
@@ -178,54 +184,79 @@ void Alien::drawFeet(){
 
 void Alien::drawArms(){
     glPushMatrix();
-        glTranslatef(0.75, 0.25, 0);
-        glScalef(0.5, 0.1, 0.1);
-        glutSolidCube(1);
-    glPopMatrix();
+        glTranslatef(0.5, 0.25, 0);
+        glRotatef(-leftArmAngle, leftArmAxis[0], leftArmAxis[1], leftArmAxis[2]);
+        glTranslatef(0.25, 0, 0);
+        glPushMatrix();
+            glScalef(0.5, 0.1, 0.1);
+            glutSolidCube(1);
+        glPopMatrix();
 
-    glPushMatrix();
-        glTranslatef(1, 0.25, 0);
-        glScalef(0.1, 0.1, 0.1);
-        glutSolidSphere(1, 12, 12);
-    glPopMatrix();
+        glTranslatef(0.25, 0, 0);
+        glPushMatrix();
+            glScalef(0.1, 0.1, 0.1);
+            glutSolidSphere(1, 12, 12);
+        glPopMatrix();
 
-    glPushMatrix();
-        glTranslatef(1, 0.25, 0);
+        glRotatef(leftForeArmTwist, 1, 0, 0);
         glRotatef(leftForeArmAngle, 0, 0, 1);
         glTranslatef(0.25, 0, 0);
-        glScalef(0.5, 0.1, 0.1);
-        glutSolidCube(1);
+        glPushMatrix();
+            glScalef(0.5, 0.1, 0.1);
+            glutSolidCube(1);
+        glPopMatrix();
     glPopMatrix();
 
     glPushMatrix();
-        glTranslatef(-0.75, 0.25, 0);
-        glScalef(0.5, 0.1, 0.1);
-        glutSolidCube(1);
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslatef(-1, 0.25, 0);
-        glScalef(0.1, 0.1, 0.1);
-        glutSolidSphere(1, 12, 12);
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslatef(-1, 0.25, 0);
-        glRotatef(rightForeArmAngle, 1, 0, 0);
+        glTranslatef(-0.5, 0.25, 0);
+        glRotatef(rightArmAngle, rightArmAxis[0], rightArmAxis[1], rightArmAxis[2]);
         glTranslatef(-0.25, 0, 0);
-        glScalef(0.5, 0.1, 0.1);
-        glutSolidCube(1);
+        glPushMatrix();
+            glScalef(0.5, 0.1, 0.1);
+            glutSolidCube(1);
+        glPopMatrix();
+
+        glTranslatef(-0.25, 0, 0);
+        glPushMatrix();
+            glScalef(0.1, 0.1, 0.1);
+            glutSolidSphere(1, 12, 12);
+        glPopMatrix();
+
+        glRotatef(rightForeArmTwist, 1, 0, 0);
+        glRotatef(-rightForeArmAngle, 0, 0, 1);
+        glTranslatef(-0.25, 0, 0);
+        glPushMatrix();
+            glScalef(0.5, 0.1, 0.1);
+            glutSolidCube(1);
+        glPopMatrix();
     glPopMatrix();
 }
 
 void Alien::setIdleHeight(int keyframe){
-    idleHeight = 0.01 * sin(M_2_PI * keyframe * 0.1);
+    idleHeight = 0.01 * sin(M_2_PI * keyframe * 0.1 + animPhase);
 }
 
 void Alien::setWalkingFrame(int keyframe){
-	walkingAngle = 20 * sin(M_2_PI * keyframe * 0.1);
+	walkingAngle = 20 * sin(M_2_PI * keyframe * 0.1 + animPhase);
 }
 
 void Alien::setIsIdle(bool isIdle){
     this->isIdle = isIdle;
+}
+
+void Alien::setArmsPose(
+    float rightArmAngle, float leftArmAngle,
+    float rightArmAxis[3], float leftArmAxis[3],
+    float rightForeArmAngle, float leftForeArmAngle,
+    float rightForeArmTwist, float leftForeArmTwist
+){
+    this->rightArmAngle = rightArmAngle;
+    this->leftArmAngle = leftArmAngle;
+    std::copy(rightArmAxis, rightArmAxis + 3, this->rightArmAxis);
+    std::copy(leftArmAxis, leftArmAxis + 3, this->leftArmAxis);
+
+    this->rightForeArmAngle = rightForeArmAngle;
+    this->leftForeArmAngle = leftForeArmAngle;
+    this->rightForeArmTwist = rightForeArmTwist;
+    this->leftForeArmTwist = leftForeArmTwist;
 }

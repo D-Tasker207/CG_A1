@@ -19,10 +19,14 @@ int camRotAmount = 10;
 int camMoveAmount = 2;
 
 // Scene Objects
-Alien* alien;
+std::vector<Alien*> groundAliens;
+Alien* ufoAlien;
 Plane* floorPlane;
 SkyDome* skyDome;
 UFO* ufo;
+
+// Animation Variables
+float takeOffHeight = 0;
 
 // Flags
 bool ufoTakingOff = false;
@@ -37,22 +41,31 @@ void createSceneObjects(){
         new float[2]{-50.0, 50.0}, // X Range
         new float[2]{-50.0, 50.0} // Z Range
     );
-    floorPlane->setTextureScaling(10.0, 10.0);
     floorPlane->addTexture("floor", new Texture("sand_02_diff_1k.jpg"));
+    floorPlane->setTextureScaling(10.0, 10.0);
+    
+    for (int i = 0; i < 4; i++){
+        Alien* alien = new Alien();
+        alien->setArmsPose(75, 75, new float[3] {0, 1, 0.2}, new float[3] {0, 1, 0.2}, 30, 30, 90, 90);
+        alien->setAnimPhase(getRandomFloat(0, 6));
+        groundAliens.push_back(alien);
+    }
 
-    skyDome = new SkyDome();
+    ufoAlien = new Alien();
+    ufoAlien->setArmsPose(75, 75, new float[3] {0, 1, 0.2}, new float[3] {0, 1, 0.2}, 30, 30, 90, 90);
+    ufoAlien->setAnimPhase(getRandomFloat(0, 6));
 
     ufo = new UFO();
 
-    alien = new Alien();
+    skyDome = new SkyDome();
 }
 
 void destroySceneObjects(){
-    delete alien;
+    delete ufoAlien;
     delete ufo;
     delete floorPlane;
     delete skyDome;
-    alien = nullptr;
+    ufoAlien = nullptr;
     ufo = nullptr;
     floorPlane = nullptr;
     skyDome = nullptr;
@@ -61,26 +74,27 @@ void destroySceneObjects(){
 void generalIdleAnim(int value){
     if (value > 100) value = 1;
     ufo->incDishAngle();
-    alien->setIdleHeight(value);
-    alien->setWalkingFrame(value);
+    ufoAlien->setIdleHeight(value);
+    for (Alien* alien : groundAliens){
+        if (alien->getIsIdle()) alien->setIdleHeight(value);
+    }
     glutTimerFunc(50, generalIdleAnim, value + 1);
 }
 
 void ufoTakeOffAnim(int value){
-    ufo->incTakeOffHeight(value);
-    if (value < 2000) glutTimerFunc(15, ufoTakeOffAnim, value + 1);
-}
+    const int scale = 50;
+    takeOffHeight = pow(((float) value / scale), 2) / 6.433;
 
-void ufoSmokeAnim(int value){
     ufo->updateSmoke();
-    
-    glutTimerFunc(50, ufoSmokeAnim, 0);
+
+    if (value < 2000) glutTimerFunc(15, ufoTakeOffAnim, value + 1);
 }
 // other animation callbacks can be added here
 
 void startIdleAnimations(){
     glutTimerFunc(50, generalIdleAnim, 0);
-    glutTimerFunc(50, ufoSmokeAnim, 0);
+
+    std::cout << "Idle Animations Started" << std::endl;
 
     // other idle animation callbacks can be added here
 }
@@ -97,7 +111,6 @@ void display(void){
     gluLookAt(  camX, camY, camZ, //Camera Pos 
                 camX + sin(toRadians(camRot)), camY, camZ + cos(toRadians(camRot)),    //Camera LookAt
                 0, 1, 0);   //Up vector
-    // gluLookAt(5, 5, 5, 0, 0, 0, 0, 1, 0);
 
     glLightfv(GL_LIGHT0,GL_POSITION, lpos);   //Set light position
 
@@ -106,68 +119,60 @@ void display(void){
     glCullFace(GL_BACK);
     glEnable(GL_TEXTURE_2D);
 
-    glPushMatrix();
+    glPushMatrix(); // Draw Floor
         glTranslatef(0, -0.01, 0.0);
         floorPlane->getTexture("floor")->bind(0);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         floorPlane->draw();
     glPopMatrix();
 
-    
-    glPushMatrix();
+    glPushMatrix(); // Draw Sky
         skyDome->draw();
     glPopMatrix();
 
     glDisable(GL_TEXTURE_2D);
 
+    // Draw UFO
     glPushMatrix();
-        glScalef(0.8, 0.8, 0.8);
-        glTranslatef(0, 0, 0);
-        ufo->draw();
+        glTranslatef(0, takeOffHeight, 0);
+        glPushMatrix();
+            glTranslatef(0, 4.7, 0);
+            glRotatef(90, 0, 1, 0);
+            ufoAlien->draw();
+        glPopMatrix();
+        glPushMatrix();
+            glScalef(0.8, 0.8, 0.8);
+            ufo->draw();
+        glPopMatrix();
     glPopMatrix();
 
+    // Draw Ground Aliens
     glPushMatrix();
         glTranslatef(5, 1, 5);
-        alien->draw();
+        for (Alien* alien : groundAliens){
+            alien->draw();
+            glTranslatef(5, 0, 0);
+        }
     glPopMatrix();
 
-    // glPushMatrix();
-    //     glTranslatef(-10, 4, 0);
-    //     glEnable(GL_COLOR_MATERIAL);
-    //     {
-    //         // Alien head (sphere)
-    //         glColor3f(0.5, 0.8, 0.5); // Green color
-    //         glutSolidSphere(1.0, 20, 20);
-
-    //         // Alien eyes (spheres)
-    //         glPushMatrix();
-    //             glColor3f(1.0, 1.0, 1.0); // White color
-    //             glTranslatef(-0.3, 0.3, 0.5); // Left eye position
-    //             glutSolidSphere(0.2, 10, 10);
-    //             glTranslatef(0.6, 0.0, 0.0); // Right eye position
-    //             glutSolidSphere(0.2, 10, 10);
-    //         glPopMatrix();
-
-    //         // Alien mouth (cone)
-    //         glColor3f(1.0, 0.5, 0.5); // Red color
-    //         glPushMatrix();
-    //             glTranslatef(0.0, -0.7, 0.8); // Mouth position
-    //             glRotatef(90.0, 1.0, 0.0, 0.0); // Rotate cone to point upward
-    //             glutSolidCone(0.5, 1.0, 10, 10);
-    //         glPopMatrix();
-    //     }
-    //     glDisable(GL_COLOR_MATERIAL);
-    // glPopMatrix();
-
-
+    // Draw Shadows
     glCullFace(GL_FRONT);
-
     glDisable(GL_LIGHTING);
     glEnable(GL_BLEND);
     glPushMatrix();
         float shadowColor[4] = {0.1, 0.1, 0.11, 0.8};
         glMultMatrixf((float*)shadowMat);
-        ufo->drawShadows(shadowColor);
+        glPushMatrix();
+            glTranslatef(0, takeOffHeight, 0);
+            ufo->drawShadows(shadowColor);
+        glPopMatrix();
+        glPushMatrix();
+            glTranslatef(5, 1, 5);
+            for (Alien* alien : groundAliens){
+                alien->drawShadows(shadowColor);
+                glTranslatef(5, 0, 0);
+            }
+        glPopMatrix();
     glPopMatrix();
     glEnable(GL_LIGHTING);
     glDisable(GL_BLEND);
@@ -199,6 +204,8 @@ void initialize(void){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(30, 1.77, 10.0, 1000.0);   //Camera Frustum
+
+    std::cout << "Initialization Complete" << std::endl;
 }
 
 void specialKeyHandler(int k, int x, int y){
@@ -238,12 +245,10 @@ void keyHandler(unsigned char key, int x, int y){
             break;
         case ' ':
             if (!ufoTakingOff){
-                ufoTakingOff = true;
+                ufo->setTakingOff(true);
                 glutTimerFunc(10, ufoTakeOffAnim, 0);
             }
             break;
-        case 'x':
-            alien->setIsIdle(!alien->getIsIdle());
         default:
             return;
     }

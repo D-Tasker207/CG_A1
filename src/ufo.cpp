@@ -64,7 +64,7 @@ UFO::UFO() {
     gluQuadricNormals(q, GLU_SMOOTH);
     gluQuadricDrawStyle(q, GLU_FILL);
 
-    engineSmoke = new Particle(new float[3] {0, 1, 0}, new float[3] {0, -0.3, 0}, 5, 1, 200, new Texture("Glow.bmp"));
+    engineSmoke = new Particle(new float[3] {0, 1, 0}, new float[3] {0, -0.3, 0}, 1, 1, 50, new Texture("glow.png"));
 
     takingOff = false;
     takeOffHeight = 0;
@@ -262,9 +262,4 @@ void UFO::incDishAngle(){
     if(dishAngle >= 360){
         dishAngle = 0;
     }
-}
-
-void UFO::incTakeOffHeight(int keyframe){
-    if (keyframe <= 1000) takeOffHeight = (((float)keyframe / 1000) - sin(keyframe)) + 0.5 * ((float)keyframe / 1000);
-    else takeOffHeight = pow(((float) keyframe / 1000), 2) / 6.433;
 }

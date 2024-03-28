@@ -9,6 +9,7 @@
 class Texture {
     public:
         Texture(std::string imgPath);
+        ~Texture();
         void bind(unsigned int uint);
     private:
         unsigned int textureID;

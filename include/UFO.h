@@ -13,15 +13,13 @@ class UFO : public Drawable {
         void updateSmoke();
         void setDishAngle(float angle) { dishAngle = angle; };
         void incDishAngle();
-        void incTakeOffHeight(int keyframe);
-        void takeOff();
-
+        void setTakingOff(bool takingOff) { this->takingOff = takingOff; };
     private:
         GLUquadric* q;
         Particle* engineSmoke;
-        bool takingOff;
         float takeOffHeight;
         float dishAngle;
+        bool takingOff;
 
         void drawBody();
         void drawCanopy();

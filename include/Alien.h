@@ -11,13 +11,15 @@ class Alien : public Drawable{
 
         void setArmsPose(
             float rightArmAngle, float leftArmAngle,
+            float rightArmAxis[3], float leftArmAxis[3],
             float rightForeArmAngle, float leftForeArmAngle,
-            float *rightArmAxis[3], float *leftArmAxis[3]
+            float rightForeArmTwist, float leftForeArmTwist
         );
         void setIdleHeight(int keyframe);
         void setWalkingFrame(int keyframe);
         void setIsIdle(bool isIdle);
         bool getIsIdle() { return isIdle; }
+        void setAnimPhase(int animPhase) { this->animPhase = animPhase; }
     private:
         void drawFeet();
         void drawEyes();
@@ -30,10 +32,13 @@ class Alien : public Drawable{
         bool isIdle;
         float idleHeight;
         float walkingAngle;
+        float animPhase;
+        float rightForeArmAngle;
+        float rightForeArmTwist;
+        float leftForeArmAngle;
+        float leftForeArmTwist;
         float rightArmAngle;
         float leftArmAngle;
-        float rightForeArmAngle;
-        float leftForeArmAngle;
         float rightArmAxis[3];
         float leftArmAxis[3];
 };

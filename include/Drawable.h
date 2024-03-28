@@ -26,6 +26,11 @@ class Drawable {
         Texture* getTexture(std::string textureName) { return this->textures[textureName]; };
         Material* getMaterial(std::string materialName) { return this->materials[materialName]; };
 
+        ~Drawable() {
+            for (auto const& [key, val] : materials) delete val;
+            for (auto const& [key, val] : textures) delete val; 
+        }
+
     private:
         std::unordered_map<std::string, Material*> materials;
         std::unordered_map<std::string, Texture*> textures;

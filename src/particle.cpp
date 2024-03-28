@@ -21,6 +21,7 @@ Particle::Particle(float startPos[3], float velocity[3], float size, float color
 
 void Particle::drawParticles(){
     glDisable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_2D);
@@ -32,6 +33,7 @@ void Particle::drawParticles(){
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
+    glDisable(GL_COLOR_MATERIAL);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -73,13 +75,13 @@ void Particle::updateParticles(){
         for (int i = 0; i < 3; i++){
             it->pos[i] += it->vel[i];
         }
-        it->size = delta * 20 + size;
+        it->size = delta * 5 + size;
         it->col = color * 1 - delta;
         if (it->currentLifeTicks >= it->maxLifeTicks){
             it = particleList.erase(it);
         }
     }
-    if (tick % 2 == 0) newParticle();
+    newParticle();
 }
 
 void Particle::newParticle(){
