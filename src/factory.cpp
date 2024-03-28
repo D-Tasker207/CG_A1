@@ -116,8 +116,8 @@ void Factory::drawSearchLight(){
 		glRotatef(spotlightAngle, 1, 0, 0);
 		glTranslatef(0, 0, -3);
 		glutSolidCone(1, 3, 20, 20);
-		glLightfv(lightID, GL_POSITION, spotlightPos);
-        glLightfv(lightID, GL_SPOT_DIRECTION, spotlightDir);
+		// glLightfv(lightID, GL_POSITION, spotlightPos);
+        // glLightfv(lightID, GL_SPOT_DIRECTION, spotlightDir);
 	glPopMatrix();
 	
 }
