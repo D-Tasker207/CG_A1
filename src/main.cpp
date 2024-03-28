@@ -8,6 +8,8 @@
 #include <iostream>
 #include "utils.h"
 #include "UFO.h"
+#include "Factory.h"
+#include "Crate.h"
 #include "Alien.h"
 #include "SkyDome.h"
 #include "Plane.h"
@@ -19,14 +21,17 @@ int camRotAmount = 10;
 int camMoveAmount = 2;
 
 // Scene Objects
+std::vector<Crate*> crates;
 std::vector<Alien*> groundAliens;
 Alien* ufoAlien;
 Plane* floorPlane;
 SkyDome* skyDome;
 UFO* ufo;
+Factory* factory;
 
 // Animation Variables
 float takeOffHeight = 0;
+int alienWalkingAngle = 0;
 
 // Flags
 bool ufoTakingOff = false;
@@ -46,9 +51,12 @@ void createSceneObjects(){
     
     for (int i = 0; i < 4; i++){
         Alien* alien = new Alien();
-        alien->setArmsPose(75, 75, new float[3] {0, 1, 0.2}, new float[3] {0, 1, 0.2}, 30, 30, 90, 90);
+        alien->setArmsPose(75, 75, new float[3] {0, 1, 0.2}, new float[3] {0, 1, 0.2}, 60, 60, 90, 90);
         alien->setAnimPhase(getRandomFloat(0, 6));
+        alien->setIsIdle(false);
         groundAliens.push_back(alien);
+
+        crates.push_back(new Crate());
     }
 
     ufoAlien = new Alien();
@@ -56,8 +64,8 @@ void createSceneObjects(){
     ufoAlien->setAnimPhase(getRandomFloat(0, 6));
 
     ufo = new UFO();
-
     skyDome = new SkyDome();
+    factory = new Factory(GL_LIGHT1);
 }
 
 void destroySceneObjects(){
@@ -65,19 +73,24 @@ void destroySceneObjects(){
     delete ufo;
     delete floorPlane;
     delete skyDome;
+    delete factory;
     ufoAlien = nullptr;
     ufo = nullptr;
     floorPlane = nullptr;
     skyDome = nullptr;
+    factory = nullptr;
 }
 
 void generalIdleAnim(int value){
-    if (value > 100) value = 1;
+    value = (value + 1) % 100;
     ufo->incDishAngle();
     ufoAlien->setIdleHeight(value);
+    factory->updateSpotlightAngle(value);
     for (Alien* alien : groundAliens){
         if (alien->getIsIdle()) alien->setIdleHeight(value);
+        else alien->setWalkingFrame(value);
     }
+    if (takeOffHeight == 0) alienWalkingAngle = (alienWalkingAngle + 1) % 360;
     glutTimerFunc(50, generalIdleAnim, value + 1);
 }
 
@@ -132,6 +145,16 @@ void display(void){
 
     glDisable(GL_TEXTURE_2D);
 
+    // Draw Factory
+    
+    glPushMatrix();
+        glTranslatef(20, 0, 10);
+        glRotatef(-60, 0, 1, 0);
+        glScalef(0.3, 0.3, -0.3);
+        factory->draw();
+    glPopMatrix();
+    
+
     // Draw UFO
     glPushMatrix();
         glTranslatef(0, takeOffHeight, 0);
@@ -148,10 +171,18 @@ void display(void){
 
     // Draw Ground Aliens
     glPushMatrix();
-        glTranslatef(5, 1, 5);
-        for (Alien* alien : groundAliens){
-            alien->draw();
-            glTranslatef(5, 0, 0);
+        glTranslatef(13, 0.75, 10);
+        for (int i = 0; i < 4; i++){
+            glPushMatrix();
+                glRotatef(-alienWalkingAngle, 0, 1, 0);
+                glRotatef(i * 90, 0, 1, 0);
+                glTranslatef(10, 0, 0);
+                groundAliens[i]->draw();
+                glRotatef(2, 0, 1, 0);
+                glTranslatef(0, 0, 1);
+                glScalef(0.5, 0.5, 0.5);
+                crates[i]->draw();
+            glPopMatrix();
         }
     glPopMatrix();
 
@@ -167,10 +198,18 @@ void display(void){
             ufo->drawShadows(shadowColor);
         glPopMatrix();
         glPushMatrix();
-            glTranslatef(5, 1, 5);
-            for (Alien* alien : groundAliens){
-                alien->drawShadows(shadowColor);
-                glTranslatef(5, 0, 0);
+            glTranslatef(13, 0.75, 10);
+            for (int i = 0; i < 4; i++){
+                glPushMatrix();
+                    glRotatef(-alienWalkingAngle, 0, 1, 0);
+                    glRotatef(i * 90, 0, 1, 0);
+                    glTranslatef(10, 0, 0);
+                    groundAliens[i]->drawShadows(shadowColor);
+                    glRotatef(2, 0, 1, 0);
+                    glTranslatef(0, 0, 1);
+                    glScalef(0.5, 0.5, 0.5);
+                    crates[i]->drawShadows(shadowColor);
+                glPopMatrix();
             }
         glPopMatrix();
     glPopMatrix();
@@ -189,6 +228,7 @@ void initialize(void){
     glEnable(GL_LIGHTING);		//Enable OpenGL states
     glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
     glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
